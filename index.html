@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Mini Game Multiplayer</title>
+<style>
+    body {
+        background-color: black;
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+    }
+    .question {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 20px 0;
+    }
+    .answers {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .answer-btn {
+        background-color: #222;
+        color: #fff;
+        font-weight: bold;
+        padding: 10px 20px;
+        border: 2px solid #fff;
+        cursor: pointer;
+        width: 200px;
+    }
+    .answer-btn:hover {
+        background-color: #444;
+    }
+    .players {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .player {
+        border: 2px solid #fff;
+        padding: 10px;
+        width: 150px;
+    }
+    .timer {
+        font-size: 20px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+</style>
+</head>
+<body>
+
+<h1>Mini Game Multiplayer</h1>
+
+<div class="question" id="question">รอเริ่มเกม...</div>
+
+<div class="answers" id="answers"></div>
+
+<div class="timer" id="timer">เวลา: 30 วินาที</div>
+
+<div class="players" id="players">
+    <!-- player info จะมาอยู่ตรงนี้ -->
+</div>
+
+<script>
+const questions = [
+    {q:"สีอะไรที่เกิดจากการผสมแดงกับน้ำเงิน?", a:["ม่วง","เขียว","ส้ม","น้ำตาล"], correct:0, bonus:5},
+    {q:"2+2*2 = ?", a:["6","8","4","2"], correct:0, bonus:3},
+    {q:"ผลไม้ชนิดใดมีสีเหลือง?", a:["กล้วย","ส้ม","องุ่น","มะม่วง"], correct:0, bonus:2},
+];
+
+let players = [
+    {name:"คุณ", score:0},
+    {name:"เพื่อน1", score:0},
+    {name:"เพื่อน2", score:0},
+];
+let currentQuestion = 0;
+let timeLeft = 30;
+let timerInterval;
+
+function startGame() {
+    showQuestion();
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = `เวลา: ${timeLeft} วินาที`;
+        if(timeLeft <= 0) {
+            checkAnswers();
+        }
+    }, 1000);
+}
+
+function showQuestion() {
+    const q = questions[currentQuestion];
+    document.getElementById('question').innerText = q.q;
+    const answersDiv = document.getElementById('answers');
+    answersDiv.innerHTML = "";
+    q.a.forEach((ans, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'answer-btn';
+        btn.innerText = ans;
+        btn.onclick = () => selectAnswer(index);
+        answersDiv.appendChild(btn);
+    });
+    updatePlayers();
+}
+
+function selectAnswer(index) {
+    const q = questions[currentQuestion];
+    const player = players[0]; // สมมติเล่นเอง
+    if(index === q.correct) {
+        player.score += 10 + q.bonus;
+        alert(`ถูกต้อง! ได้คะแนนพิเศษ ${q.bonus} คะแนน`);
+    } else {
+        player.score -= 5;
+        alert("ผิด! คะแนน -5");
+    }
+
+    // แย่งคะแนนเพื่อน (สุ่มคนอื่น)
+    const steal = Math.floor(Math.random()*players.length);
+    if(steal !== 0) {
+        players[steal].score = Math.max(0, players[steal].score - 3);
+        player.score += 3;
+        alert(`คุณแย่งคะแนนเพื่อน ${players[steal].name} ได้ 3 คะแนน`);
+    }
+
+    nextQuestion();
+}
+
+function nextQuestion() {
+    currentQuestion++;
+    timeLeft = 30;
+    if(currentQuestion >= questions.length) {
+        endGame();
+    } else {
+        showQuestion();
+    }
+}
+
+function checkAnswers() {
+    alert("หมดเวลา!");
+    nextQuestion();
+}
+
+function updatePlayers() {
+    const playersDiv = document.getElementById('players');
+    playersDiv.innerHTML = "";
+    players.forEach(p => {
+        const div = document.createElement('div');
+        div.className = "player";
+        div.innerHTML = `<strong>${p.name}</strong><br>คะแนน: ${p.score}`;
+        playersDiv.appendChild(div);
+    });
+}
+
+function endGame() {
+    clearInterval(timerInterval);
+    let result = "จบเกม! คะแนนรวม:\n";
+    players.forEach(p => {
+        result += `${p.name}: ${p.score}\n`;
+    });
+    alert(result);
+}
+
+startGame();
+</script>
+
+</body>
+</html>
